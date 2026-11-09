@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Parcheggio</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Parcheggio">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f1115">
+<style>
+  :root{--bg:#0f1115;--card:#181b22;--line:#262a33;--txt:#eef0f4;--mut:#8b919e;--acc:#2563eb;--ok:#22c55e}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,system-ui,Roboto,sans-serif;
+       padding:calc(env(safe-area-inset-top) + 20px) 18px calc(env(safe-area-inset-bottom) + 30px);max-width:520px;margin-inline:auto}
+  h1{font-size:18px;color:var(--mut);font-weight:600;margin:0 0 18px;text-align:center}
+  #go{width:100%;aspect-ratio:1.6;border:0;border-radius:28px;background:var(--acc);color:#fff;font-size:26px;font-weight:800;
+      box-shadow:0 10px 30px rgba(37,99,235,.35);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+  #go span{font-size:54px}
+  #go:active{transform:scale(.98)}
+  #go:disabled{opacity:.7}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-top:16px}
+  .ok{color:var(--ok);font-weight:700;font-size:15px;margin-bottom:6px}
+  .lbl{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin-bottom:6px}
+  .via{font-size:21px;font-weight:700;line-height:1.3}
+  .when{color:var(--mut);font-size:14px;margin-top:4px}
+  .nav{display:block;text-align:center;background:#232835;color:var(--txt);text-decoration:none;border-radius:14px;padding:14px;font-weight:700;margin-top:14px}
+  .err{color:#f87171;font-size:15px;line-height:1.4}
+  .row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
+  .row:first-of-type{border-top:0}
+  .row .t{font-size:15px;font-weight:600}
+  .row .d{font-size:13px;color:var(--mut);margin-top:2px}
+  .row a{color:#60a5fa;text-decoration:none;font-weight:600;font-size:14px;white-space:nowrap}
+</style>
+</head>
+<body>
+<h1>🚗 Dove ho parcheggiato</h1>
+
+<button id="go"><span>📍</span>Ho parcheggiato qui</button>
+
+<div id="ultimo"></div>
+<div id="storico"></div>
+
+<script>
+const KEY="parcheggi_v1";
+const $=id=>document.getElementById(id);
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
+function save(a){try{localStorage.setItem(KEY,JSON.stringify(a.slice(0,100)))}catch(e){}}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function maps(p){return "https://www.google.com/maps/search/?api=1&query="+p.lat+","+p.lng}
+function quando(ts){
+  const d=new Date(ts);
+  return d.toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"})+" alle "+d.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
+}
+function fa(ts){
+  const m=Math.round((Date.now()-ts)/60000);
+  if(m<1)return"adesso"; if(m<60)return m+" min fa";
+  const h=Math.floor(m/60); if(h<24)return h+" h fa";
+  const g=Math.floor(h/24); return g===1?"ieri":g+" giorni fa";
+}
+function nome(p){return p.via||(p.lat.toFixed(5)+", "+p.lng.toFixed(5))}
+
+function render(appenaSalvato){
+  const a=load();
+  if(!a.length){$("ultimo").innerHTML="";$("storico").innerHTML="";return}
+  const p=a[0];
+  $("ultimo").innerHTML='<div class="card">'+
+    (appenaSalvato?'<div class="ok">✅ Perfetto, hai lasciato la macchina in</div>':'<div class="lbl">La macchina è in · '+fa(p.ts)+'</div>')+
+    '<div class="via">'+esc(nome(p))+'</div>'+
+    '<div class="when">'+quando(p.ts)+(p.acc?' · precisione ~'+Math.round(p.acc)+' m':'')+'</div>'+
+    '<a class="nav" href="'+maps(p)+'" target="_blank" rel="noopener">🧭 Portami alla macchina</a></div>';
+  const rest=a.slice(1,20);
+  $("storico").innerHTML=rest.length?'<div class="card"><div class="lbl">Parcheggi precedenti</div>'+
+    rest.map(x=>'<div class="row"><div><div class="t">'+esc(nome(x))+'</div><div class="d">'+quando(x.ts)+'</div></div><a href="'+maps(x)+'" target="_blank" rel="noopener">Mappa</a></div>').join("")+'</div>':"";
+}
+
+async function via(lat,lng){
+  try{
+    const r=await fetch("https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&accept-language=it&lat="+lat+"&lon="+lng);
+    const j=await r.json(), ad=j.address||{};
+    const strada=ad.road||ad.pedestrian||ad.square||ad.footway||"";
+    if(!strada) return null;
+    return strada+(ad.house_number?" "+ad.house_number:"");
+  }catch(e){return null}
+}
+
+$("go").onclick=()=>{
+  const b=$("go");
+  if(!navigator.geolocation){$("ultimo").innerHTML='<div class="card err">Questo telefono non dà la posizione al browser.</div>';return}
+  b.disabled=true;b.innerHTML="<span>⏳</span>Prendo la posizione…";
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const p={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy,ts:Date.now()};
+    const a=load();a.unshift(p);save(a);render(true);
+    const v=await via(p.lat,p.lng);
+    if(v){const a2=load(); if(a2[0]&&a2[0].ts===p.ts){a2[0].via=v;save(a2);render(true)}}
+    b.disabled=false;b.innerHTML="<span>📍</span>Ho parcheggiato qui";
+  },err=>{
+    b.disabled=false;b.innerHTML="<span>📍</span>Ho parcheggiato qui";
+    const msg=err.code===1?"Devi consentire l'accesso alla posizione (Impostazioni → Safari/Chrome → Posizione → Consenti).":"Non riesco a prendere la posizione, riprova all'aperto.";
+    $("ultimo").innerHTML='<div class="card err">'+msg+'</div>';
+  },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+};
+render(false);
+setInterval(()=>{if(!$("go").disabled)render(false)},60000);
+</script>
+</body>
+</html>
