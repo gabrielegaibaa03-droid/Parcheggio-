@@ -3,51 +3,133 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Parcheggio</title>
+<title>ParcheggiaTI</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Parcheggio">
+<meta name="apple-mobile-web-app-title" content="ParcheggiaTI">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#000000">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;800&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#121212">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
+  :root{--acc:#F26B1D;--bg:#121212;--mut:#8A8A8A}
   *{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
-  html,body{height:100%}
-  body{background:#000;color:#fff;font-family:Inter,-apple-system,system-ui,sans-serif;
-       display:flex;flex-direction:column;align-items:center;
-       padding:calc(env(safe-area-inset-top) + 8vh) 28px calc(env(safe-area-inset-bottom) + 28px)}
-  #go{width:min(62vw,260px);aspect-ratio:1;border-radius:50%;border:0;background:#fff;color:#000;
-      font:800 min(30vw,128px)/1 Inter,sans-serif;cursor:pointer;transition:transform .15s,opacity .2s}
+  html,body{min-height:100%}
+  body{background:var(--bg);color:#fff;font-family:Inter,-apple-system,system-ui,sans-serif;
+       display:flex;flex-direction:column;align-items:center;min-height:100vh;
+       padding:calc(env(safe-area-inset-top) + 40px) 28px calc(env(safe-area-inset-bottom) + 28px)}
+  .logo{font-size:32px;font-weight:800;letter-spacing:-.5px}
+  .logo span{color:var(--acc)}
+  #go{margin-top:44px;width:min(52vw,200px);aspect-ratio:1;border-radius:50%;border:0;background:#8B8B8B;
+      box-shadow:0 18px 50px rgba(0,0,0,.55);color:var(--acc);font:800 min(30vw,118px)/1 Inter,sans-serif;
+      cursor:pointer;transition:transform .15s}
   #go:active{transform:scale(.95)}
-  #go.wait{opacity:.35}
-  .hint{margin-top:22px;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#666;font-weight:500}
-  #info{margin-top:8vh;text-align:center;width:100%;max-width:420px}
-  .ok{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#666;font-weight:500}
-  .via{font-size:30px;font-weight:300;line-height:1.2;margin-top:10px}
-  .when{color:#666;font-size:15px;margin-top:8px}
-  .nav{display:inline-block;margin-top:26px;color:#fff;text-decoration:none;font-size:15px;font-weight:500;
-       border-bottom:1px solid #444;padding-bottom:3px}
-  .err{color:#ff6b6b;font-size:15px;line-height:1.4}
-  #storico{margin-top:auto;width:100%;max-width:420px;padding-top:40px}
-  .row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:11px 0;border-top:1px solid #1a1a1a;
-       color:#555;font-size:14px;text-decoration:none}
-  #manuale{margin-top:14px;background:none;border:0;color:#444;font:500 13px Inter,sans-serif;text-decoration:underline;cursor:pointer}
-  #form{display:none;margin-top:18px;width:100%;max-width:420px;gap:8px}
-  #form input{flex:1;background:#111;border:1px solid #222;border-radius:12px;color:#fff;font:16px Inter,sans-serif;padding:13px 14px;outline:none}
-  #form button{background:#fff;color:#000;border:0;border-radius:12px;font:600 15px Inter,sans-serif;padding:0 18px}
-  .row b{color:#999;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lbl{font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--mut)}
+  .stato{margin-top:26px;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--acc)}
+  #info{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;text-align:center}
+  .via{margin-top:10px;font-size:30px;font-weight:800;letter-spacing:-.5px;line-height:1.15}
+  .when{margin-top:8px;font-size:16px;color:#9A9A9A}
+  .nav{margin-top:26px;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:56px;border-radius:16px;
+       background:var(--acc);color:#121212;font-size:17px;font-weight:800;text-decoration:none}
+  #manuale{margin-top:10px;background:none;border:0;color:#9A9A9A;font:500 14px Inter,sans-serif;text-decoration:underline;padding:12px;cursor:pointer}
+  #form{display:none;margin-top:14px;width:100%;max-width:420px;gap:8px}
+  #form input{flex:1;min-width:0;height:54px;border-radius:14px;border:2px solid var(--acc);background:#1C1C1C;color:#fff;font:500 16px Inter,sans-serif;padding:0 14px;outline:none}
+  #form button{border:0;border-radius:14px;background:var(--acc);color:#121212;font:800 15px Inter,sans-serif;padding:0 16px}
+  .err{margin-top:22px;color:#ff7b7b;font-size:15px;line-height:1.4;text-align:center}
+  #storico{margin-top:auto;width:100%;max-width:420px;padding-top:36px}
+  .row{display:flex;justify-content:space-between;gap:12px;padding:13px 0;border-top:1px solid #262626;color:#CFCFCF;text-decoration:none;font-size:15px}
+  .row span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row span:last-child{color:var(--mut);white-space:nowrap}
+
+  /* animazione */
+  #anim{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:10;opacity:0;transition:opacity .35s}
+  #anim.on{display:flex}
+  #anim.vis{opacity:1}
+  #anim svg{width:min(92vw,420px);height:auto}
+  #animTxt{margin-top:18px;font-size:13px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--acc);min-height:18px}
+  .brake{opacity:0;transition:opacity .2s}
+  .brake.on{opacity:1}
 </style>
 </head>
 <body>
 
+<div class="logo"><span>Parcheggia</span>TI</div>
 <button id="go" aria-label="Ho parcheggiato qui">P</button>
-<div class="hint" id="hint">Tocca quando parcheggi</div>
-<button id="manuale">oppure scrivi la via</button>
-<form id="form"><input id="indirizzo" placeholder="es. Via Barberia 30A" autocomplete="off"><button>Salva</button></form>
 
 <div id="info"></div>
+<button id="manuale">oppure scrivi la via</button>
+<form id="form"><input id="indirizzo" placeholder="es. Via Barberia 30A" autocomplete="off" aria-label="Via e numero civico"><button>Salva</button></form>
 <div id="storico"></div>
+
+<!-- Overlay animazione -->
+<div id="anim" aria-hidden="true">
+  <svg viewBox="0 0 300 420">
+    <defs>
+      <g id="auto">
+        <rect x="-3" y="12" width="5" height="14" rx="2" fill="#0a0a0a"/>
+        <rect x="38" y="12" width="5" height="14" rx="2" fill="#0a0a0a"/>
+        <rect x="-3" y="56" width="5" height="14" rx="2" fill="#0a0a0a"/>
+        <rect x="38" y="56" width="5" height="14" rx="2" fill="#0a0a0a"/>
+      </g>
+      <g id="grigia">
+        <use href="#auto"/>
+        <rect x="0" y="0" width="40" height="82" rx="11" fill="#4a4a4a"/>
+        <path d="M6 24 Q20 18 34 24 L32 32 L8 32 Z" fill="#1b1b1b"/>
+        <rect x="8" y="34" width="24" height="26" rx="4" fill="#3a3a3a"/>
+        <path d="M8 62 L32 62 L30 69 L10 69 Z" fill="#1b1b1b"/>
+      </g>
+    </defs>
+
+    <!-- asfalto -->
+    <rect x="0" y="0" width="300" height="420" fill="#1b1b1b"/>
+    <!-- marciapiede -->
+    <rect x="276" y="0" width="24" height="420" fill="#2a2a2a"/>
+    <!-- linea di mezzeria -->
+    <g stroke="#3d3d3d" stroke-width="3" stroke-dasharray="18 16">
+      <line x1="40" y1="0" x2="40" y2="420"/>
+    </g>
+    <!-- stalli a lisca di pesce (45°) -->
+    <g stroke="#e9e9e9" stroke-width="2.5" stroke-linecap="round" opacity=".85">
+      <line x1="185" y1="132" x2="276" y2="41"/>
+      <line x1="185" y1="217" x2="276" y2="126"/>
+      <line x1="185" y1="302" x2="276" y2="211"/>
+      <line x1="185" y1="387" x2="276" y2="296"/>
+    </g>
+    <!-- auto parcheggiate ai lati -->
+    <g transform="translate(232 127) rotate(45) translate(-20 -41)"><use href="#grigia"/></g>
+    <g transform="translate(232 297) rotate(45) translate(-20 -41)"><use href="#grigia"/></g>
+
+    <!-- la Mini -->
+    <g id="mini" transform="translate(100 470)">
+      <g transform="translate(-20 -41)">
+        <use href="#auto"/>
+        <rect x="0" y="0" width="40" height="82" rx="11" fill="#F4F4F4"/>
+        <!-- strisce cofano -->
+        <rect x="13" y="2" width="4.5" height="20" rx="1" fill="#F26B1D"/>
+        <rect x="22.5" y="2" width="4.5" height="20" rx="1" fill="#F26B1D"/>
+        <!-- parabrezza -->
+        <path d="M6 24 Q20 18 34 24 L32 32 L8 32 Z" fill="#141414"/>
+        <!-- tetto nero con strisce -->
+        <rect x="7" y="33" width="26" height="28" rx="4" fill="#161616"/>
+        <rect x="13" y="35" width="4.5" height="24" rx="1" fill="#F26B1D"/>
+        <rect x="22.5" y="35" width="4.5" height="24" rx="1" fill="#F26B1D"/>
+        <!-- lunotto + spoiler arancio -->
+        <path d="M8 63 L32 63 L30 70 L10 70 Z" fill="#141414"/>
+        <rect x="9" y="71" width="22" height="3" rx="1.5" fill="#F26B1D"/>
+        <!-- specchietti arancio -->
+        <ellipse cx="-3" cy="27" rx="4" ry="2.6" fill="#F26B1D"/>
+        <ellipse cx="43" cy="27" rx="4" ry="2.6" fill="#F26B1D"/>
+        <!-- fari -->
+        <circle cx="7" cy="4" r="2.6" fill="#fff6c8"/>
+        <circle cx="33" cy="4" r="2.6" fill="#fff6c8"/>
+        <!-- stop -->
+        <rect class="brake" x="3" y="77" width="7" height="3" rx="1.5" fill="#ff3b30"/>
+        <rect class="brake" x="30" y="77" width="7" height="3" rx="1.5" fill="#ff3b30"/>
+      </g>
+    </g>
+  </svg>
+  <div id="animTxt"></div>
+</div>
 
 <script>
 const KEY="parcheggi_v1";
@@ -58,21 +140,73 @@ function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&l
 function maps(p){return "https://www.google.com/maps/search/?api=1&query="+(p.lat!=null?p.lat+","+p.lng:encodeURIComponent(p.via+", Bologna"))}
 function giorno(ts){return new Date(ts).toLocaleDateString("it-IT",{weekday:"short",day:"numeric",month:"short"})}
 function ora(ts){return new Date(ts).toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"})}
-function nome(p){return p.via||(p.lat.toFixed(5)+", "+p.lng.toFixed(5))}
+function nome(p){return p.via||(p.lat!=null?p.lat.toFixed(5)+", "+p.lng.toFixed(5):"Posizione salvata")}
+const pin='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
+const check='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
-function render(appena){
+function render(){
   const a=load();
-  if(!a.length){$("info").innerHTML="";$("storico").innerHTML="";return}
+  if(!a.length){
+    $("info").innerHTML='<div class="stato" style="margin-top:26px">Tocca quando parcheggi</div>';
+    $("storico").innerHTML="";return;
+  }
   const p=a[0];
   $("info").innerHTML=
-    '<div class="ok">'+(appena?"Perfetto, l'hai lasciata in":"La macchina è in")+'</div>'+
+    '<div class="stato">'+check+'Parcheggiata</div>'+
+    '<div class="lbl" style="margin-top:28px">La macchina è in</div>'+
     '<div class="via">'+esc(nome(p))+'</div>'+
     '<div class="when">'+giorno(p.ts)+' · '+ora(p.ts)+'</div>'+
-    '<a class="nav" href="'+maps(p)+'" target="_blank" rel="noopener">Portami lì →</a>';
-  $("storico").innerHTML=a.slice(1,6).map(x=>
-    '<a class="row" href="'+maps(x)+'" target="_blank" rel="noopener"><b>'+esc(nome(x))+'</b><span>'+giorno(x.ts)+' · '+ora(x.ts)+'</span></a>').join("");
+    '<a class="nav" href="'+maps(p)+'" target="_blank" rel="noopener">'+pin+'Portami lì</a>';
+  const rest=a.slice(1,6);
+  $("storico").innerHTML=rest.length?'<div class="lbl" style="margin-bottom:4px">Prima</div>'+
+    rest.map(x=>'<a class="row" href="'+maps(x)+'" target="_blank" rel="noopener"><span>'+esc(nome(x))+'</span><span>'+giorno(x.ts)+' · '+ora(x.ts)+'</span></a>').join(""):"";
 }
+function errore(msg){render();$("info").insertAdjacentHTML("beforeend",'<div class="err">'+msg+'</div>')}
 
+/* ---------- animazione Mini ---------- */
+function cubic(p0,p1,p2,p3,t){const u=1-t;return u*u*u*p0+3*u*u*t*p1+3*u*t*t*p2+t*t*t*p3}
+function dcubic(p0,p1,p2,p3,t){const u=1-t;return 3*u*u*(p1-p0)+6*u*t*(p2-p1)+3*t*t*(p3-p2)}
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+function posa(x,y,ang){$("mini").setAttribute("transform","translate("+x+" "+y+") rotate("+ang+")")}
+function animazione(){
+  return new Promise(res=>{
+    const ov=$("anim");ov.classList.add("on");requestAnimationFrame(()=>ov.classList.add("vis"));
+    document.querySelectorAll(".brake").forEach(b=>b.classList.remove("on"));
+    $("animTxt").textContent="";
+    const D1=900,D2=1500,start=performance.now();
+    posa(100,470,0);
+    function frame(now){
+      const t=now-start;
+      if(t<D1){                       // dritto lungo la strada
+        const k=ease(t/D1);posa(100,470-(470-330)*k,0);
+      }else if(t<D1+D2){              // curva dentro lo stallo a 45°
+        const k=ease((t-D1)/D2);
+        const P=[[100,330],[100,250],[175,262],[232,212]];
+        const x=cubic(P[0][0],P[1][0],P[2][0],P[3][0],k),y=cubic(P[0][1],P[1][1],P[2][1],P[3][1],k);
+        const dx=dcubic(P[0][0],P[1][0],P[2][0],P[3][0],Math.max(k,.001)),dy=dcubic(P[0][1],P[1][1],P[2][1],P[3][1],Math.max(k,.001));
+        let ang=Math.atan2(dx,-dy)*180/Math.PI; if(k>.85) ang=ang+(45-ang)*((k-.85)/.15);
+        posa(x,y,ang);
+        if(k>.7)document.querySelectorAll(".brake").forEach(b=>b.classList.add("on"));
+      }else{
+        posa(232,212,45);
+        $("animTxt").textContent="Parcheggiata!";
+        setTimeout(()=>document.querySelectorAll(".brake").forEach(b=>b.classList.remove("on")),300);
+        setTimeout(res,700);return;
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  });
+}
+function chiudiAnim(){const ov=$("anim");ov.classList.remove("vis");setTimeout(()=>ov.classList.remove("on"),350)}
+
+/* ---------- posizione ---------- */
+function posizione(){
+  return new Promise((res,rej)=>{
+    if(!navigator.geolocation)return rej({code:0});
+    navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+  });
+}
 async function via(lat,lng){
   try{
     const r=await fetch("https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&accept-language=it&lat="+lat+"&lon="+lng);
@@ -82,26 +216,31 @@ async function via(lat,lng){
   }catch(e){return null}
 }
 
-$("go").onclick=()=>{
-  const b=$("go");
-  if(b.classList.contains("wait"))return;
-  if(!navigator.geolocation){$("info").innerHTML='<div class="err">Posizione non disponibile su questo telefono.</div>';return}
-  b.classList.add("wait");$("hint").textContent="Cerco la posizione…";
-  navigator.geolocation.getCurrentPosition(async pos=>{
-    const p={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy,ts:Date.now()};
-    const a=load();a.unshift(p);save(a);render(true);
-    const v=await via(p.lat,p.lng);
-    if(v){const a2=load();if(a2[0]&&a2[0].ts===p.ts){a2[0].via=v;save(a2);render(true)}}
-    b.classList.remove("wait");$("hint").textContent="Tocca quando parcheggi";
-  },err=>{
-    b.classList.remove("wait");$("hint").textContent="Tocca quando parcheggi";
-    $("info").innerHTML='<div class="err">'+(err.code===1?"Consenti la posizione nelle impostazioni del telefono.":"Posizione non trovata, riprova.")+'</div>';
-  },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+let occupato=false;
+$("go").onclick=async()=>{
+  if(occupato)return; occupato=true;
+  const anim=animazione();
+  let p=null,err=null;
+  try{
+    const pos=await posizione();
+    p={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy,ts:Date.now()};
+    const a=load();a.unshift(p);save(a);
+    const v=await Promise.race([via(p.lat,p.lng),new Promise(r=>setTimeout(()=>r(null),4000))]);
+    if(v){const a2=load();if(a2[0]&&a2[0].ts===p.ts){a2[0].via=v;save(a2)}}
+  }catch(e){err=e}
+  await anim; chiudiAnim(); occupato=false;
+  if(err)errore(err.code===1?"Consenti la posizione nelle impostazioni del telefono, poi riprova.":"Posizione non trovata, riprova.");
+  else render();
+  // se la via arriva dopo, aggiorna
+  if(p&&!load()[0].via){via(p.lat,p.lng).then(v=>{if(v){const a=load();if(a[0].ts===p.ts){a[0].via=v;save(a);render()}}})}
 };
+
 $("manuale").onclick=()=>{$("form").style.display="flex";$("manuale").style.display="none";$("indirizzo").focus()};
 $("form").onsubmit=async e=>{
   e.preventDefault();
-  const t=$("indirizzo").value.trim(); if(!t)return;
+  const t=$("indirizzo").value.trim(); if(!t||occupato)return; occupato=true;
+  $("indirizzo").blur();
+  const anim=animazione();
   const p={via:t,lat:null,lng:null,ts:Date.now()};
   try{
     const r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=it&q="+encodeURIComponent(t+", Bologna"));
@@ -109,9 +248,9 @@ $("form").onsubmit=async e=>{
   }catch(e){}
   const a=load();a.unshift(p);save(a);
   $("indirizzo").value="";$("form").style.display="none";$("manuale").style.display="";
-  render(true);
+  await anim; chiudiAnim(); occupato=false; render();
 };
-render(false);
+render();
 </script>
 </body>
 </html>
