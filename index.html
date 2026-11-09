@@ -32,6 +32,10 @@
   #storico{margin-top:auto;width:100%;max-width:420px;padding-top:40px}
   .row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:11px 0;border-top:1px solid #1a1a1a;
        color:#555;font-size:14px;text-decoration:none}
+  #manuale{margin-top:14px;background:none;border:0;color:#444;font:500 13px Inter,sans-serif;text-decoration:underline;cursor:pointer}
+  #form{display:none;margin-top:18px;width:100%;max-width:420px;gap:8px}
+  #form input{flex:1;background:#111;border:1px solid #222;border-radius:12px;color:#fff;font:16px Inter,sans-serif;padding:13px 14px;outline:none}
+  #form button{background:#fff;color:#000;border:0;border-radius:12px;font:600 15px Inter,sans-serif;padding:0 18px}
   .row b{color:#999;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
@@ -39,6 +43,8 @@
 
 <button id="go" aria-label="Ho parcheggiato qui">P</button>
 <div class="hint" id="hint">Tocca quando parcheggi</div>
+<button id="manuale">oppure scrivi la via</button>
+<form id="form"><input id="indirizzo" placeholder="es. Via Barberia 30A" autocomplete="off"><button>Salva</button></form>
 
 <div id="info"></div>
 <div id="storico"></div>
@@ -49,7 +55,7 @@ const $=id=>document.getElementById(id);
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
 function save(a){try{localStorage.setItem(KEY,JSON.stringify(a.slice(0,100)))}catch(e){}}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function maps(p){return "https://www.google.com/maps/search/?api=1&query="+p.lat+","+p.lng}
+function maps(p){return "https://www.google.com/maps/search/?api=1&query="+(p.lat!=null?p.lat+","+p.lng:encodeURIComponent(p.via+", Bologna"))}
 function giorno(ts){return new Date(ts).toLocaleDateString("it-IT",{weekday:"short",day:"numeric",month:"short"})}
 function ora(ts){return new Date(ts).toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"})}
 function nome(p){return p.via||(p.lat.toFixed(5)+", "+p.lng.toFixed(5))}
@@ -91,6 +97,19 @@ $("go").onclick=()=>{
     b.classList.remove("wait");$("hint").textContent="Tocca quando parcheggi";
     $("info").innerHTML='<div class="err">'+(err.code===1?"Consenti la posizione nelle impostazioni del telefono.":"Posizione non trovata, riprova.")+'</div>';
   },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+};
+$("manuale").onclick=()=>{$("form").style.display="flex";$("manuale").style.display="none";$("indirizzo").focus()};
+$("form").onsubmit=async e=>{
+  e.preventDefault();
+  const t=$("indirizzo").value.trim(); if(!t)return;
+  const p={via:t,lat:null,lng:null,ts:Date.now()};
+  try{
+    const r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=it&q="+encodeURIComponent(t+", Bologna"));
+    const j=await r.json(); if(j[0]){p.lat=+j[0].lat;p.lng=+j[0].lon}
+  }catch(e){}
+  const a=load();a.unshift(p);save(a);
+  $("indirizzo").value="";$("form").style.display="none";$("manuale").style.display="";
+  render(true);
 };
 render(false);
 </script>
